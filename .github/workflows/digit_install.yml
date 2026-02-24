@@ -307,7 +307,7 @@ jobs:
         working-directory: deploy-as-code 
       - name: Displaying the Loadbalancer ID
         run: |
-          LB_ID=$(kubectl get svc ingress-nginx-controller -n backbone -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+          LB_ID=$(kubectl --insecure-skip-tls-verify=true get svc -A -o json | jq -r '.items[] | select(.spec.type=="LoadBalancer") | select(.metadata.name|test("ingress-nginx-controller|ingress-nginx|nginx-ingress|ingress")) | (.status.loadBalancer.ingress[0].hostname // .status.loadBalancer.ingress[0].ip // "")' | head -n 1); if [ -z "$LB_ID" ]; then echo "LoadBalancer Service not found. Showing candidate services"; kubectl --insecure-skip-tls-verify=true get svc -A | grep -i ingress || true; exit 1; fi; echo "LoadBalancer ID: $LB_ID"; echo "Please map the LoadBalancer ID ($LB_ID) with the domain provided in input.yaml"
           echo "LoadBalancer ID: $LB_ID"
           echo "Thank you for installing DIGIT! 🙏 Your installation is complete and ready to roll! 🚀"
           echo "Please map the LoadBalancer ID ($LB_ID) with the domain provided in input.yaml to access the DIGIT UI"
