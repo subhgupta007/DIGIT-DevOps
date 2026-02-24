@@ -21,6 +21,6 @@ db_username: "tldbuser"
 domain_name: "tl.pgrdigit.in"
 
 # Replace with the name you want to give to your S3 bucket which is used to store the terraform state
-terraform_state_bucket_name: "tl-bucket"
+terraform_state_bucket_name: "tl-digit-bucket"
 
 
