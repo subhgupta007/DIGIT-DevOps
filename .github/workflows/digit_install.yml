@@ -201,11 +201,13 @@ jobs:
         with:
           name: infra-as-code-artifact
           path: infra-as-code.tar.gz
+          overwrite: true
       - name: Upload deploy-as-code folder as artifact
         uses: actions/upload-artifact@v4
         with:
           name: deploy-as-code-artifact
-          path: deploy-as-code.tar.gz      
+          path: deploy-as-code.tar.gz 
+          overwrite: true     
 
   DIGIT-deployment:
     if: ${{ github.event_name == 'push' }}
