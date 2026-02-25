@@ -8,7 +8,7 @@ configmaps:
       db-url: "jdbc:postgresql://postgresql.backbone:5432/postgres" ## example: jdbc:postgresql://egov-demo.postgres.database.azure.com:5432/egov_demo
       domain: "digit-lts.digit.org" ## Add your Domain Name    
       egov-services-fqdn-name: "https://digit-lts.digit.org/" ## Add your Domain Name
-      egov-state-level-tenant-id: "pg" 
+      egov-state-level-tenant-id: "pb" 
       s3-assets-bucket: "(pg-egov-assets|egov-playground-assets)"
       es-host: "elasticsearch-data-v1.es-cluster"
       es-indexer-host: "http://elasticsearch-data-v1.es-cluster:9200/"

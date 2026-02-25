@@ -41,21 +41,21 @@ spec:
                                       {
                                           "name": "Super User",
                                           "code": "SUPERUSER",
-                                          "tenantId": "pg"
+                                          "tenantId": "pb"
                                       },
                                       {
                                           "name": "PGR CSR for registering complaints",
                                           "code": "CSR",
-                                          "tenantId": "pg"
+                                          "tenantId": "pb"
                                       },
                                       {
                                           "name": "GRO for searching complaints",
                                           "code": "GRO",
-                                          "tenantId": "pg"
+                                          "tenantId": "pb"
                                       }
                               ],
                               "emailId": "xyz@gmail.com",
-                              "tenantId": "pg"
+                              "tenantId": "pb"
                           }
                       }')
           echo "Curl response: $response"
