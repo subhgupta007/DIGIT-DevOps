@@ -22,3 +22,4 @@ domain_name: "trade.pgrdigit.in"
 # Replace with the name you want to give to your S3 bucket which is used to store the terraform state
 terraform_state_bucket_name: "tl-state-s3-bucket"
 
+
