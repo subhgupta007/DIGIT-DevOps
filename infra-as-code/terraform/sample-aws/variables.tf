@@ -26,12 +26,12 @@ variable "availability_zones" {
 
 variable "kubernetes_version" {
   description = "kubernetes version"
-  default = "1.31"
+  default = "1.34"
 }
 
 variable "instance_types" {
   description = "Arry of instance types for SPOT instances"
-  default = ["m5a.xlarge"]
+  default = ["m5a.large"]
   
 }
 

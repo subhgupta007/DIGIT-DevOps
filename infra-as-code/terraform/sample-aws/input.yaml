@@ -1,19 +1,24 @@
 # Replace with the name which you want to give to your EKS cluster
 # Cluster name can have only lowercase alphanumeric characters and hyphens
 # For example: "digit-demo"
-cluster_name: "test-demo"
+cluster_name: "tl-eks"
+
+
+ssh_key_name: "digit-tl-key" 
+
+public_ssh_key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCCmtreVpUwtS/gdFKT3a2YbHFPd3JZcm1hsYiZPCF7VuChjuc7ct+jmrs/eaIT7pTmw/v1l8LWykv3yTyvS58qeR682bqf20qplPr8GS1KjmZp6cxMkHr1ODCTUHcnJFnN6vsovczkJ96gcBlCDh/N80n/NZuMaOoDCFCwvCL8nqD6t/bn+S2ErgoEHjyvbw+OGjqzba7xNqRDO9cLun6LHkhFJVCvFLIwGxhufL/DWRqNqTpzfMjvQs/yVqPITX4lmDNGQvtEOiyuoEdupHIN1dELsRbeazr1tNSjOUOiCepMkcI4rGxZUThbuT+m9crCFDDvhoknjoqQ4h5MtnJN"
 
 # Name you want to give to your Database
 # DB name must contain only alphanumeric characters
-db_name: "testdemodb"
+db_name: "tradedb"
 
 # Replace with DB username you want
 # DB user name must contain only alphanumeric characters
-db_username: "testdemo" 
+db_username: "tradedb" 
 
 # Replace with Domain name you want for your web applications
-domain_name: "test-demo.digit.org"
+domain_name: "trade.pgrdigit.in"
 
 # Replace with the name you want to give to your S3 bucket which is used to store the terraform state
-terraform_state_bucket_name: "test-demo-state-s3-bucket"
+terraform_state_bucket_name: "tl-state-s3-bucket"
 
