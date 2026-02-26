@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - master
-      - DIGIT-2.9LTS-URABN
+      - DIGIT-2.9LTS-URBAN
   workflow_dispatch:
     inputs:
       destroyCommand:
