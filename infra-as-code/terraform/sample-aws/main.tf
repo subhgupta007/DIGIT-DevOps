@@ -152,7 +152,7 @@ module "db" {
   vpc_security_group_ids        = ["${module.network.rds_db_sg_id}"]
   availability_zone             = "${element(var.availability_zones, 0)}"
   instance_class                = "db.t4g.medium"  ## postgres db instance type
-  engine_version                = "15.8"   ## postgres version
+  engine_version                = "16.6"   ## postgres version
   storage_type                  = "gp3"
   storage_gb                    = "20"     ## postgres disk size
   backup_retention_days         = "7"
