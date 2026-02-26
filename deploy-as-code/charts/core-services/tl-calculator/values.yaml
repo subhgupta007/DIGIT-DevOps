@@ -16,7 +16,7 @@ initContainers:
     schemaTable: "tl_calculator_schema"
     image:
       repository: "tl-calculator-db"
-      tag: "v1.2.0-76f77645ab-14"
+      tag: "v1.2.0-27264e8ec9-11"
 
 # Container Configs
 image:
