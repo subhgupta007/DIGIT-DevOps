@@ -181,3 +181,9 @@ secrets:
   egov-pg-service:
     name: egov-pg-service
     namespace: egov
+  tl-services:
+    name: tl-services
+    namespace: egov
+  tl-calculator:
+    name: tl-calculator
+    namespace: egov
