@@ -1,10 +1,10 @@
 terraform {
   backend "s3" {
-    bucket = <terraform_state_bucket_name>
+    bucket = "tl-state-s3-bucket"
     key    = "terraform-setup/terraform.tfstate"
     region = "ap-south-1"
     # The below line is optional depending on whether you are using DynamoDB for state locking and consistency
-    dynamodb_table = <terraform_state_bucket_name>
+    dynamodb_table = "tl-state-s3-bucket-lock-table"
     # The below line is optional if your S3 bucket is encrypted
     encrypt = true
   }
