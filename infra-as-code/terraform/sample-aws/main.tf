@@ -16,10 +16,6 @@ terraform {
   }
 }
 
-locals {
-  az_to_find           = var.availability_zones[0] 
-  az_index_in_network  = index(var.network_availability_zones, local.az_to_find)
-}
 
 resource "aws_iam_user" "filestore_user" {
   name = "${var.cluster_name}-filestore-user"
@@ -214,7 +210,7 @@ module "eks_managed_node_group" {
   name            = "${var.cluster_name}-spot"
   cluster_name    = var.cluster_name
   cluster_version = var.kubernetes_version
-  subnet_ids      = [module.network.private_subnets[local.az_index_in_network]]
+  subnet_ids = slice(module.network.private_subnets, 0, length(var.availability_zones))
   vpc_security_group_ids  = [module.eks.node_security_group_id]
   cluster_service_cidr = module.eks.cluster_service_cidr
   use_custom_launch_template = true
@@ -229,7 +225,6 @@ module "eks_managed_node_group" {
       }
     }
   }
-  user_data_template_path = "user-data.yaml"
   min_size     = var.min_worker_nodes
   max_size     = var.max_worker_nodes
   desired_size = var.desired_worker_nodes
