@@ -128,5 +128,11 @@ releases:
     installed: true
     <<: *default
 
+  - name: tl-services # Replace with your desired namespace
+    installed: true
+    <<: *default  
 
+  - name: tl-calculator # Replace with your desired namespace
+    installed: true
+    <<: *default
 
