@@ -16,10 +16,12 @@ initContainers:
     schemaTable: "billing_service_schema"
     image:
       repository: "billing-service-db"
+      tag: "v1.3.7-d3b373c7ce-17"
 
 # Container Configs
 image:
   repository: "billing-service"
+  tag: "v1.3.7-d3b373c7ce-17"
 replicas: "1"
 healthChecks:
   enabled: true
