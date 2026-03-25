@@ -35,14 +35,15 @@ on:
           - charts/backbone-services/backboneservices-helmfile.yaml
           - charts/auxiliary-services/auxiliary-helmfile.yaml
 
-  # Auto-trigger on push to release-githubactions OR deploy branch when deploy-as-code changes
-  # release-githubactions is the active working branch for this repo
+  # Auto-trigger on push to release-githubactions OR deploy branch
+  # Fires when deploy-as-code config changes OR workflow file itself changes
   push:
     branches:
       - release-githubactions
       - deploy
     paths:
       - "deploy-as-code/**"
+      - ".github/workflows/digit_deploy_only.yml"
 
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
