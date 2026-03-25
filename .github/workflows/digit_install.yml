@@ -1,11 +1,13 @@
 name: DIGIT-Install workflow
-# Workflow branch creating cluster against the input.yaml file  
+# IMPORTANT: Infra is already provisioned via Terraform.
+# This workflow is kept for reference and destroy capability only.
+# For deploy-only (no Terraform), use digit_deploy_only.yml instead.
+# Auto-push trigger is DISABLED — use workflow_dispatch only.
 on:
-  push:
-    branches:
-      #- master
-      #- DIGIT-2.9LTS
-      - release-githubactions
+  # push trigger disabled — infra already exists, use digit_deploy_only.yml
+  # push:
+  #   branches:
+  #     - release-githubactions
   workflow_dispatch:
     inputs:
       destroyCommand:

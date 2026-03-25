@@ -1,0 +1,25 @@
+templates:
+  default: &default
+    chart: ./{{`{{ .Release.Name }}`}}
+    version: 0.1.0
+    namespace: egov
+    missingFileHandler: Warn
+    values:
+      - ../environments/env-secrets.yaml
+      - ../environments/env.yaml
+
+releases:
+  # oauth2-proxy: optional auth proxy — set installed: true to enable
+  - name: oauth2-proxy
+    installed: false
+    <<: *default
+
+  # pgadmin: optional DB admin UI — set installed: true to enable
+  - name: pgadmin
+    installed: false
+    <<: *default
+
+  # kafka-connect: optional Kafka connector — set installed: true to enable
+  - name: kafka-connect
+    installed: false
+    <<: *default

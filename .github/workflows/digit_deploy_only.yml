@@ -1,0 +1,251 @@
+name: DIGIT Deploy Only (Infra Pre-existing)
+# Use this workflow when your AWS EKS cluster and all infrastructure
+# (VPC, RDS, MSK/Kafka, S3, etc.) are already provisioned via Terraform.
+# This workflow ONLY deploys/upgrades DIGIT services via helmfile.
+# It does NOT create, modify, or destroy any infrastructure.
+#
+# Prerequisites before running:
+#   1. deploy-as-code/charts/environments/env.yaml must have correct values:
+#      - db-host / db-url pointing to your RDS endpoint
+#      - kafka-brokers pointing to your MSK/Kafka brokers
+#      - egov-services-fqdn-name set to your domain
+#   2. deploy-as-code/charts/environments/env-secrets.yaml must have correct secrets
+#   3. GitHub Secrets required:
+#      - AWS_ACCESS_KEY_ID
+#      - AWS_SECRET_ACCESS_KEY
+#      - AWS_DEFAULT_REGION
+#      - AWS_REGION
+
+on:
+  # Manual trigger — choose cluster and optionally restrict to specific helmfile
+  workflow_dispatch:
+    inputs:
+      cluster_name:
+        description: "EKS cluster name (must already exist)"
+        required: true
+        type: string
+      helmfile_target:
+        description: "Helmfile to apply (leave blank for full digit-helmfile.yaml)"
+        required: false
+        default: "digit-helmfile.yaml"
+        type: choice
+        options:
+          - digit-helmfile.yaml
+          - charts/core-services/coreservices-helmfile.yaml
+          - charts/backbone-services/backboneservices-helmfile.yaml
+          - charts/auxiliary-services/auxiliary-helmfile.yaml
+
+  # Auto-trigger on push to release-githubactions OR deploy branch when deploy-as-code changes
+  # release-githubactions is the active working branch for this repo
+  push:
+    branches:
+      - release-githubactions
+      - deploy
+    paths:
+      - "deploy-as-code/**"
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_DEFAULT_REGION: ${{ secrets.AWS_DEFAULT_REGION }}
+  AWS_REGION: ${{ secrets.AWS_REGION }}
+
+jobs:
+  # ─────────────────────────────────────────────────────────────────────────
+  # Job 1: Resolve cluster name
+  # On workflow_dispatch: use the input directly.
+  # On push: read CLUSTER_NAME from infra-as-code/terraform/sample-aws/input.yaml
+  # ─────────────────────────────────────────────────────────────────────────
+  resolve-cluster:
+    name: Resolve target EKS cluster
+    runs-on: ubuntu-latest
+    outputs:
+      cluster_name: ${{ steps.resolve.outputs.cluster_name }}
+      helmfile_target: ${{ steps.resolve.outputs.helmfile_target }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install yq
+        run: |
+          VERSION="4.30.8"
+          sudo curl -sSL \
+            "https://github.com/mikefarah/yq/releases/download/v${VERSION}/yq_linux_amd64" \
+            -o /usr/local/bin/yq
+          sudo chmod +x /usr/local/bin/yq
+
+      - name: Resolve cluster name and helmfile target
+        id: resolve
+        run: |
+          set -euo pipefail
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            CLUSTER_NAME="${{ github.event.inputs.cluster_name }}"
+            HELMFILE_TARGET="${{ github.event.inputs.helmfile_target }}"
+          else
+            # Push trigger: read from input.yaml (same source as original workflow)
+            CLUSTER_NAME=$(yq e '.cluster_name' infra-as-code/terraform/sample-aws/input.yaml)
+            HELMFILE_TARGET="digit-helmfile.yaml"
+          fi
+
+          if [ -z "$CLUSTER_NAME" ]; then
+            echo "ERROR: cluster_name is empty. Provide it as workflow input or set it in input.yaml"
+            exit 1
+          fi
+
+          echo "cluster_name=$CLUSTER_NAME"   >> "$GITHUB_OUTPUT"
+          echo "helmfile_target=$HELMFILE_TARGET" >> "$GITHUB_OUTPUT"
+          echo "### Target cluster: $CLUSTER_NAME" >> "$GITHUB_STEP_SUMMARY"
+          echo "### Helmfile: $HELMFILE_TARGET"     >> "$GITHUB_STEP_SUMMARY"
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Job 2: Deploy DIGIT services to the existing EKS cluster
+  # ─────────────────────────────────────────────────────────────────────────
+  digit-deploy:
+    name: Deploy DIGIT services
+    needs: resolve-cluster
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── Install tooling ──────────────────────────────────────────────────
+
+      - name: Install AWS IAM Authenticator
+        run: |
+          curl -sSL \
+            https://amazon-eks.s3.us-west-2.amazonaws.com/1.19.6/2021-01-05/bin/linux/amd64/aws-iam-authenticator \
+            -o aws-iam-authenticator
+          chmod +x ./aws-iam-authenticator
+          sudo mv ./aws-iam-authenticator /usr/local/bin/aws-iam-authenticator
+          aws-iam-authenticator version
+
+      - name: Install kubectl
+        run: |
+          curl -sSL \
+            "https://dl.k8s.io/release/$(curl -sSL https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" \
+            -o kubectl
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/kubectl
+          kubectl version --client
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: "v3.13.3"
+
+      - name: Install Helmfile
+        run: |
+          HELMFILE_VERSION="v0.140.0"
+          curl -sSL \
+            "https://github.com/roboll/helmfile/releases/download/${HELMFILE_VERSION}/helmfile_linux_amd64" \
+            -o helmfile
+          chmod +x helmfile
+          sudo mv helmfile /usr/local/bin/helmfile
+          helm plugin install https://github.com/databus23/helm-diff --version v3.8.1 || true
+          helmfile --version
+
+      - name: Install sops (for encrypted secrets if needed)
+        run: |
+          wget -q https://github.com/mozilla/sops/releases/download/v3.7.1/sops-v3.7.1.linux \
+            -O sops
+          chmod +x sops
+          sudo mv sops /usr/local/bin/sops
+
+      # ── Connect to existing EKS cluster ──────────────────────────────────
+
+      - name: Generate kubeconfig for existing EKS cluster
+        run: |
+          aws eks update-kubeconfig \
+            --region "${{ env.AWS_REGION }}" \
+            --name "${{ needs.resolve-cluster.outputs.cluster_name }}"
+        # This connects to the ALREADY EXISTING cluster — no terraform needed
+
+      - name: Verify cluster connectivity
+        run: |
+          echo "=== Cluster nodes ==="
+          kubectl get nodes
+          echo "=== Existing namespaces ==="
+          kubectl get namespaces
+
+      # ── Prepare Kubernetes namespaces ────────────────────────────────────
+
+      - name: Ensure egov namespace exists
+        run: |
+          kubectl create namespace egov --dry-run=client -o yaml | kubectl apply -f -
+          # --dry-run=client + apply is idempotent: creates if missing, no-ops if exists
+
+      - name: Ensure backbone namespace exists
+        run: |
+          kubectl create namespace backbone --dry-run=client -o yaml | kubectl apply -f -
+
+      # ── Validate env.yaml has no placeholders before deploying ───────────
+
+      - name: Validate env.yaml has no unreplaced placeholders
+        run: |
+          set -euo pipefail
+          ENV_FILE="deploy-as-code/charts/environments/env.yaml"
+
+          # Fail if any angle-bracket placeholder like <something> is still present
+          if grep -E '<[a-zA-Z_]+>' "$ENV_FILE"; then
+            echo ""
+            echo "ERROR: env.yaml still contains unreplaced placeholder values (shown above)."
+            echo "Update deploy-as-code/charts/environments/env.yaml with real values before deploying."
+            exit 1
+          fi
+
+          # Confirm the real RDS endpoint is present
+          if ! grep -q "cdoy2wumu54z.ap-south-1.rds.amazonaws.com" "$ENV_FILE"; then
+            echo ""
+            echo "ERROR: env.yaml does not contain the expected RDS endpoint."
+            echo "Expected: digit-tl-eks-db.cdoy2wumu54z.ap-south-1.rds.amazonaws.com"
+            exit 1
+          fi
+
+          echo "env.yaml validation passed."
+
+      # ── Deploy ───────────────────────────────────────────────────────────
+
+      - name: Apply DIGIT helmfile
+        run: |
+          helmfile \
+            -f "${{ needs.resolve-cluster.outputs.helmfile_target }}" \
+            apply \
+            --include-needs=true
+        working-directory: deploy-as-code
+
+      # ── Post-deploy verification ─────────────────────────────────────────
+
+      - name: Show deployed pods in egov namespace
+        if: always()
+        run: |
+          echo "=== Pods in egov namespace ==="
+          kubectl get pods -n egov -o wide
+          echo ""
+          echo "=== Pods in backbone namespace ==="
+          kubectl get pods -n backbone -o wide
+
+      - name: Show LoadBalancer endpoint
+        if: always()
+        run: |
+          LB_ID=$(kubectl get svc -A -o json \
+            | jq -r '
+                .items[]
+                | select(.spec.type=="LoadBalancer")
+                | select(.metadata.name | test("ingress-nginx-controller|ingress-nginx|nginx-ingress|ingress"))
+                | (.status.loadBalancer.ingress[0].hostname // .status.loadBalancer.ingress[0].ip // "pending")
+              ' \
+            | head -n 1)
+
+          if [ -z "$LB_ID" ] || [ "$LB_ID" = "pending" ]; then
+            echo "LoadBalancer is still provisioning or not found."
+            kubectl get svc -A | grep -i ingress || true
+          else
+            echo "LoadBalancer endpoint: $LB_ID"
+            echo "Map this to your domain in Route53 / DNS."
+          fi
+
+          echo "### Deployment complete" >> "$GITHUB_STEP_SUMMARY"
+          echo "LoadBalancer: ${LB_ID:-pending}" >> "$GITHUB_STEP_SUMMARY"

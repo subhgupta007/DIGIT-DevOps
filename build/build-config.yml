@@ -1,0 +1,37 @@
+# Build configuration for GitHub Actions build.yml pipeline
+# Each entry maps a pipeline name to its Docker image build settings.
+# Fields:
+#   name        : matches the pipeline_name input in build.yml (suffix match: /pipeline_name$)
+#   build       : list of image build configs for this pipeline
+#     image-name: Docker image name (without registry prefix)
+#     work-dir  : directory passed as build context and WORK_DIR build-arg
+#     dockerfile: (optional) path to Dockerfile; defaults to {work-dir}/Dockerfile
+
+config:
+  # ── digit-ui ──────────────────────────────────────────────────────────────
+  - name: urban-src/digit-ui
+    build:
+      - image-name: digit-ui
+        work-dir: urban-src/frontend/micro-ui/web
+
+  # ── tl-services ───────────────────────────────────────────────────────────
+  - name: urban-src/tl-services
+    build:
+      - image-name: tl-services
+        work-dir: urban-src/municipal-services/tl-services
+      - image-name: tl-services-db
+        work-dir: urban-src/municipal-services/tl-services/src/main/resources/db
+
+  # ── tl-calculator ─────────────────────────────────────────────────────────
+  - name: urban-src/tl-calculator
+    build:
+      - image-name: tl-calculator
+        work-dir: urban-src/municipal-services/tl-calculator
+      - image-name: tl-calculator-db
+        work-dir: urban-src/municipal-services/tl-calculator/src/main/resources/db
+
+  # ── gateway ───────────────────────────────────────────────────────────────
+  - name: upyog-src/gateway
+    build:
+      - image-name: gateway
+        work-dir: upyog-src/core-services/zuul

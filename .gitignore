@@ -1,3 +1,6 @@
+# Kiro IDE files - never commit to repo
+.kiro/
+
 **/*/service_images.json
 **/*.pyc
 

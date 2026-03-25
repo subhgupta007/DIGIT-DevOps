@@ -30,7 +30,8 @@ releases:
     - ./minio/values.yaml
 
 - name: postgresql
-  installed: true
+  installed: false  ## DISABLED: This setup uses AWS RDS (provisioned by Terraform).
+  ## db-url in env.yaml points to the RDS endpoint from terraform output db_instance_endpoint.
   chart: ./postgresql
   version: 11.9.13
   <<: *default

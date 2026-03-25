@@ -69,7 +69,7 @@ env: |
   - name: URL_PREHOOK_LISTS        
     value: {{ index .Values "prehook-config" | quote }}
   - name: GATEWAY_ROUTES_TL_CALCULATOR_URL
-    value: http://tl-calculator:8080/                                  
+    value: http://tl-calculator.egov:8080/                                  
   - name: SERVER_PORT
     value: "8080"
   {{- if index .Values "java-debug" }}

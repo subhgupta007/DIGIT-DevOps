@@ -65,6 +65,8 @@ tl-payment-topic-name: "egov.collection.payment-create"
 tl-license-num-format: "PB-TL-[cy:yyyy-MM-dd]-[SEQ_EG_PT_LN]"
 tl-userevents-pay-link: "citizen/otpLogin?mobileNo=$mobile&redirectTo=digit-ui/citizen/payment/my-bills/$businessService/$applicationNo?tenantId=$tenantId"
 tl-msg-pay-link: "digit-ui/citizen/payment/my-bills/$businessservice/$consumercode?tenantId=$tenantId"
+pdf-link: "digit-ui/citizen/download/TRADELICENSE/$applicationNo"
+host-link: "https://tl.pgrdigit.in/"
 
 # Additional Container Envs
 env: |
