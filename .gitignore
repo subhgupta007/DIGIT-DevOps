@@ -1,6 +1,10 @@
 # Kiro IDE files - never commit to repo
 .kiro/
 
+# Local architecture and deployment docs - keep local only
+ARCHITECTURE.md
+deploy-as-code/DEPLOYMENT.md
+
 **/*/service_images.json
 **/*.pyc
 

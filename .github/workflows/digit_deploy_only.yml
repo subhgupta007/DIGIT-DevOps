@@ -188,8 +188,11 @@ jobs:
           set -euo pipefail
           ENV_FILE="deploy-as-code/charts/environments/env.yaml"
 
-          # Fail if any angle-bracket placeholder like <something> is still present
-          if grep -E '<[a-zA-Z_]+>' "$ENV_FILE"; then
+          # Match only terraform-style placeholders: <UPPER_CASE_WITH_UNDERSCORES>
+          # This avoids false positives from HTML tags like <head>, <script> in sub_filter lines.
+          # init.go and envYAMLUpdater.go use patterns like <db_host_name>, <cluster_name>, etc.
+          # which are lowercase_with_underscores — match those too.
+          if grep -E '<[a-zA-Z][a-zA-Z_]*>' "$ENV_FILE" | grep -v "sub_filter\|<script\|<head\|</"; then
             echo ""
             echo "ERROR: env.yaml still contains unreplaced placeholder values (shown above)."
             echo "Update deploy-as-code/charts/environments/env.yaml with real values before deploying."
