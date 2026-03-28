@@ -254,7 +254,7 @@ workflow_dispatch (pipeline_name = tl-services)
 
 ## 6. Bugs Fixed (TL Landmark Crash)
 
-The "Something went wrong!" crash on Landmark → Next was caused by 8 compounding issues:
+The "Something went wrong!" crash on Landmark → Next was caused by 9 compounding issues:
 
 | # | File | Bug | Fix |
 |---|---|---|---|
@@ -266,6 +266,7 @@ The "Something went wrong!" crash on Landmark → Next was caused by 8 compoundi
 | 6 | `digit-helmfile.yaml` | 3 non-existent helmfile paths causing deploy failure | Commented out |
 | 7 | `egov-persister/values.yaml` | git-sync branch `UAT` mismatched with env.yaml `UNIFIED-DEV` | Fixed to `UNIFIED-DEV` |
 | 8 | `egov-idgen/values.yaml` | `idformat-from-mdms: false` disabled MDMS ID generation | Fixed to `true` |
+| 9 | `env.yaml` | `egov-location` had `gmaps: true` but `gmapskey` in secrets is a placeholder (`jbsdbvxmbsmnx`) → Google Maps API returns 403 on Landmark step | Added `egov-location.gmaps: false` to env.yaml |
 
 ---
 
