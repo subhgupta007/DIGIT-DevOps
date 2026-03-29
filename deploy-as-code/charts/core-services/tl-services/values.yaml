@@ -17,31 +17,31 @@ initContainers:
     image:
       repository: "tl-services-db"
       tag: "v1.2.0-76f77645ab-14"
-      env: |
-        - name: SCHEMA_NAME
-          value: "public"
-        - name: "DB_URL"
-          valueFrom: 
-            configMapKeyRef: 
+    env: |
+      - name: SCHEMA_NAME
+        value: "public"
+      - name: "DB_URL"
+        valueFrom: 
+          configMapKeyRef: 
+            name: egov-config
+            key: db-url
+      - name: "SCHEMA_TABLE"
+        value: {{ .Values.initContainers.dbMigration.schemaTable | quote }}              
+      - name: "FLYWAY_USER"
+        valueFrom: 
+          secretKeyRef: 
+              name: db
+              key: flyway-username
+      - name: "FLYWAY_PASSWORD"
+        valueFrom:
+          secretKeyRef: 
+              name: db
+              key: flyway-password
+      - name: "FLYWAY_LOCATIONS"
+        valueFrom: 
+          configMapKeyRef: 
               name: egov-config
-              key: db-url
-        - name: "SCHEMA_TABLE"
-          value: {{ .Values.initContainers.dbMigration.schemaTable | quote }}              
-        - name: "FLYWAY_USER"
-          valueFrom: 
-            secretKeyRef: 
-                name: db
-                key: flyway-username
-        - name: "FLYWAY_PASSWORD"
-          valueFrom:
-            secretKeyRef: 
-                name: db
-                key: flyway-password
-        - name: "FLYWAY_LOCATIONS"
-          valueFrom: 
-            configMapKeyRef: 
-                name: egov-config
-                key: flyway-locations       
+              key: flyway-locations
 
 # Container Configs
 image:
