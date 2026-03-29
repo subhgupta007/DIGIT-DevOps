@@ -268,8 +268,7 @@ The "Something went wrong!" crash on Landmark → Next was caused by 9 compoundi
 | 8 | `egov-idgen/values.yaml` | `idformat-from-mdms: false` disabled MDMS ID generation | Fixed to `true` |
 | 9 | `env.yaml` | `egov-location` had `gmaps: true` but `gmapskey` in secrets is a placeholder (`jbsdbvxmbsmnx`) → Google Maps API returns 403 on Landmark step | Added `egov-location.gmaps: false` to env.yaml |
 | 10 | `egov-workflow-v2/values.yaml` | `heap: "-Xmx64m -Xms64m"` — only 64MB JVM heap causes OOMKill on startup → CrashLoopBackOff for 3 days → tl-services APPLY transition fails | Increased to `heap: "-Xmx192m -Xms192m"` and added `memory_limits: "384Mi"` |
-| 11 | `env.yaml` | `egov-state-level-tenant-id` not set in env.yaml → ConfigMap in cluster had stale value `pg` instead of `pb` → `egov-workflow-v2` queries MDMS with `tenantId=pg` at startup → `Missing property in path $['MdmsRes']['Workflow']` → CrashLoopBackOff | Added `egov-state-level-tenant-id: "pb"` explicitly to `configmaps.egov-config.data` in env.yaml |
-| 12 | `egov-workflow-v2/values.yaml` | `EGOV_STATELEVEL_TENANTID=pb` env var set correctly but Spring Boot's `stateLevelMapping` bean reads `egov.statelevel.tenantid` from `application.properties` which defaults to `pg` — env var relaxed binding not overriding it at startup | Added `-Degov.statelevel.tenantid=pb` to `java-args` to force JVM system property override |
+| 11 | `env.yaml` + MDMS data | `egov-workflow-v2` v2.9.0-SNAPSHOT has `pg` hardcoded as default state-level tenant in `application.properties`. The `stateLevelMapping` startup bean queries MDMS with `tenantId=pg`. MDMS is pointing to `egovernments/egov-mdms-data@DEV` which has no `pg/Workflow/` directory → `{"MdmsRes":{}}` → `PathNotFoundException: Missing property in path $['MdmsRes']['Workflow']` → CrashLoopBackOff. **Fix:** Fork `egov-mdms-data`, add `data/pg/Workflow/BusinessServiceConfig.json` with `tenantId=pg`, point MDMS git-sync to fork. |
 
 ---
 
