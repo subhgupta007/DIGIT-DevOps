@@ -18,10 +18,8 @@ initContainers:
       repository: "tl-services-db"
       tag: "v1.2.0-76f77645ab-14"
       env: |
-        {{- if index .Values "tradelicense-ismultischema-enabled" }}        
         - name: SCHEMA_NAME
-          value: {{ index .Values "tradelicense-schemas" | quote }}
-        {{- end }}
+          value: "public"
         - name: "DB_URL"
           valueFrom: 
             configMapKeyRef: 
@@ -59,8 +57,6 @@ tracing-enabled: true
 heap: "-Xmx192m -Xms192m"
 java-args: "-Dspring.profiles.active=monitoring"
 java-debug: "true"
-tradelicense-ismultischema-enabled: true
-tradelicense-schemas: "public"
 tl-search-default-limit: "10"
 tl-application-num-format: "PB-TL-[cy:yyyy-MM-dd]-[SEQ_EG_TL_APL]"
 tl-payment-topic-name: "egov.collection.payment-create"
