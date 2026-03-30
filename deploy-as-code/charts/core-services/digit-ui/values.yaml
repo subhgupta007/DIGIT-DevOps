@@ -13,8 +13,8 @@ initContainers: {}
 
 # Container Configs
 image:
-  repository: "digit-ui"
-  tag: v1.7.40-4e0e653269-239
+  repository: "pgrdigit/digit-ui"
+  tag: master-137ff6f1
 replicas: "1"
 httpPort: 80
 healthChecks:

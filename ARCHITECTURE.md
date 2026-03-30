@@ -268,7 +268,7 @@ The "Something went wrong!" crash on Landmark → Next was caused by 9 compoundi
 | 8 | `egov-idgen/values.yaml` | `idformat-from-mdms: false` disabled MDMS ID generation | Fixed to `true` |
 | 9 | `env.yaml` | `egov-location` had `gmaps: true` but `gmapskey` in secrets is a placeholder (`jbsdbvxmbsmnx`) → Google Maps API returns 403 on Landmark step | Added `egov-location.gmaps: false` to env.yaml |
 | 10 | `egov-workflow-v2/values.yaml` | `heap: "-Xmx64m -Xms64m"` — only 64MB JVM heap causes OOMKill on startup → CrashLoopBackOff for 3 days → tl-services APPLY transition fails | Increased to `heap: "-Xmx192m -Xms192m"` and added `memory_limits: "384Mi"` |
-| 11 | `env.yaml` + MDMS data | `egov-workflow-v2` v2.9.0-SNAPSHOT has `pg` hardcoded as default state-level tenant in `application.properties`. The `stateLevelMapping` startup bean queries MDMS with `tenantId=pg`. MDMS is pointing to `egovernments/egov-mdms-data@DEV` which has no `pg/Workflow/` directory → `{"MdmsRes":{}}` → `PathNotFoundException: Missing property in path $['MdmsRes']['Workflow']` → CrashLoopBackOff. **Fix:** Fork `egov-mdms-data`, add `data/pg/Workflow/BusinessServiceConfig.json` with `tenantId=pg`, point MDMS git-sync to fork. |
+| 12 | `data/pb/TradeLicense/CommonFieldsConfigWithoutPT.json` (MDMS) | `SelectOwnerShipDetails`, `SelectOwnerDetails`, `SelectOwnerAddress`, `SelectProofIdentity`, `SelectOwnershipProof` components referenced in MDMS config but NOT built into digit-ui image `v1.7.40-4e0e653269-239` → React error #130 on `owner-ship-details` page | **PENDING** — Either rebuild digit-ui OR map to existing components (`TLOwnerShipCategory` etc.) |
 
 ---
 
