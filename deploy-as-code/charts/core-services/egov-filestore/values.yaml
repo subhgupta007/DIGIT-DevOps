@@ -10,17 +10,17 @@ initContainers:
     schemaTable: "egov_filestore_schema"
     image:
       repository: "egov-filestore-db"
-      tag: DIGIT-2.9-LTS-237578ce80-14 
+      tag: DIGIT-2.9-LTS-237578ce80-14
 
 # Ingress Configs
 ingress:
-  zuul: true
+  zuul: false
   context: "filestore"
 
 # Container Configs
 image:
   repository: "egov-filestore"
-  tag: DIGIT-2.9-LTS-237578ce80-14 
+  tag: DIGIT-2.9-LTS-237578ce80-14
 replicas: "1"
 healthChecks:
   enabled: true
@@ -29,11 +29,13 @@ healthChecks:
 appType: "java-spring"
 tracing-enabled: true
 is-bucket-fixed: "true"
-fixed-bucketname: "unified-dev-bucket-s3"
+fixed-bucketname: "pgr-eks-cluster-filestore-bucket"
 heap: "-Xmx192m -Xms192m"
 file-storage-mount-path: "/filestore"
 is-nfs-enabled: false
 is-s3-enabled: true
+minio-enabled: false
+filestore-url-validity: 3600
 
 persistence:
   enabled: false
@@ -43,9 +45,9 @@ env: |
   - name: SERVER_PORT
     value: "8080"
   - name: SECURITY_BASIC_ENABLED
-    value: "false"  
+    value: "false"
   - name: MANAGEMENT_SECURITY_ENABLED
-    value: "false" 
+    value: "false"
   - name: FILE_STORAGE_MOUNT_PATH
     value: {{ index .Values "file-storage-mount-path" | quote }}
   - name: TEMP_FOLDER_PATH
@@ -55,8 +57,6 @@ env: |
   - name: ISNFSSTORAGEENABLED
     value: {{ index .Values "is-nfs-enabled" | quote }}
   {{- if index .Values "is-nfs-enabled" }}
-  - name: ISNFSSTORAGEENABLED
-    value: "true"
   - name: DISK_STORAGE_HOST_URL
     valueFrom:
       configMapKeyRef:
@@ -68,7 +68,7 @@ env: |
   {{- if index .Values "is-s3-enabled" }}
   - name: ISS3ENABLED
     value: "true"
-  {{- end }}  
+  {{- end }}
   {{- if index .Values "minio-enabled" }}
   - name: AWS_KEY
     valueFrom:
@@ -80,7 +80,12 @@ env: |
       secretKeyRef:
         key: secretkey
         name: minio
-  {{else}}
+  - name: MINIO_URL
+    valueFrom:
+      configMapKeyRef:
+        name: egov-service-host
+        key: minio-url
+  {{- else }}
   - name: AWS_KEY
     valueFrom:
       secretKeyRef:
@@ -102,17 +107,7 @@ env: |
   {{- end }}
   - name: JAVA_OPTS
     value: {{ index .Values "heap" | quote }}
-  - name: ALLOWED_FORMATS_MAP
-    value: {{ index .Values "allowed-file-formats-map" | quote }}
-  {{- if index .Values "minio-enabled" }}  
-  - name: MINIO_URL
-    valueFrom:
-      configMapKeyRef:
-        name: egov-service-host
-        key: minio-url
+  {{- if index .Values "filestore-url-validity" }}
+  - name: PRESIGNED_URL_EXPIRY_TIME_IN_SECS
+    value: {{ index .Values "filestore-url-validity" | quote }}
   {{- end }}
-  {{- if index .Values "filestore-url-validity" }}   
-  - name: PRESIGNED_URL_EXPIRY_TIME_IN_SECS     
-    value: {{ index .Values "filestore-url-validity" | quote }}   
-  {{- end }}  
-
