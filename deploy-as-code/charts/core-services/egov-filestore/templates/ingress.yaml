@@ -7,13 +7,17 @@ metadata:
     kubernetes.io/ingress.class: "nginx"  
     nginx.ingress.kubernetes.io/proxy-body-size: 8m                          
 spec:
+  tls:
+  - hosts:
+    - {{ .Values.global.domain }}
+    secretName: {{ .Values.global.domain }}-tls-certs
   rules:
   - host: {{ .Values.global.domain }}
     http:
       paths:
       - backend:
           service:
-            name: zuul
+            name: gateway
             port:
               number: 8080
         path: /{{ .Values.ingress.context }}
